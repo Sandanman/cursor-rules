@@ -1,0 +1,204 @@
+---
+description: 项目通用编码标准和最佳实践
+alwaysApply: true
+---
+
+# 通用编码标准
+
+更新日期：2026-01-27
+
+## 代码格式化
+
+### 缩进和空格
+- **缩进方式**：使用空格（Space）
+- **缩进大小**：4个空格
+- **配置文件**：`.editorconfig` 和 `.prettierrc.json`
+
+### 引号和分号
+- **引号**：使用单引号（`'`）
+- **分号**：不使用分号（`semi: false`）
+
+### 行长度
+- **最大行长度**：100个字符
+- **配置**：`printWidth: 100`
+
+### 文件末尾
+- **换行符**：LF（Unix风格）
+- **末尾换行**：必须添加换行符（`insert_final_newline: true`）
+- **尾随空格**：必须删除（`trim_trailing_whitespace: true`）
+
+## 命名规范
+
+### 文件命名
+- **Vue组件文件**：PascalCase（大驼峰）
+  - 示例：`BackHeader.vue`、`MeetingCard.vue`、`Message.vue`
+- **JavaScript文件**：camelCase（小驼峰）
+  - 示例：`meeting.js`、`user.js`、`axios.js`、`utils.js`
+- **配置文件**：kebab-case 或 camelCase
+  - 示例：`const.config.js`、`home.config.js`、`index.js`
+- **样式文件**：与组件同名
+  - 示例：`index.less`（对应组件的样式文件）、`index.css`、`global.css`
+- **视图文件夹**：PascalCase + View 后缀
+  - 示例：`HomeView/`、`LoginView/`、`AboutView/`
+
+### 变量和函数命名
+- **变量**：camelCase（小驼峰）
+  - 示例：`userInfo`、`meetingList`、`quickMeetingShow`、`timer`
+- **常量**：UPPER_SNAKE_CASE（大写下划线）
+  - 示例：`ERROR_CONFIG`、`NETWORK_CODES`、`BUSINESS_CODES`
+- **函数**：动词开头，camelCase（小驼峰）
+  - 示例：`getUserInfo`、`getMeetingList`、`createQuickMeeting`、`gotoSetting`
+- **事件处理函数**：动词 + Event 或动作描述
+  - 示例：`loginEvent`、`menuAction`、`pageBack`、`closeQuickMask`
+- **API函数**：动词 + 名词
+  - 示例：`getMeetingList`、`createMeeting`、`updateMeeting`、`deleteMeeting`
+
+### CSS类名
+- **基本规则**：kebab-case（短横线命名）
+  - 示例：`.home-page`、`.back-header`、`.meeting-card`
+- **BEM命名风格**：Block-Element-Modifier
+  - Block（块）：`.home-page`
+  - Element（元素）：`.home-page__header`、`.home-page__content`
+  - Modifier（修饰符）：`.home-page--dark`、`.home-menu-item-quick`
+
+## 文件组织
+
+### 目录结构
+```
+src/
+├── api/                    # API接口
+│   ├── meeting.js         # 会议相关API
+│   ├── user.js            # 用户相关API
+│   └── request.js         # 请求封装
+├── assets/                # 静态资源
+│   ├── images/            # 图片资源
+│   │   ├── common/        # 通用图片
+│   │   ├── home/          # 首页图片
+│   │   └── login/         # 登录页图片
+│   ├── libs/              # 第三方库
+│   └── styles/            # 全局样式
+│       └── global.css     # 全局样式文件
+├── components/            # 公共组件
+│   ├── BackHeader.vue     # 返回头部组件
+│   ├── MeetingCard.vue    # 会议卡片组件
+│   └── Message.vue        # 消息组件
+├── config/                # 配置文件
+│   ├── const.config.js    # 常量配置
+│   └── index.js           # 主配置文件
+├── router/                # 路由配置
+│   └── index.js           # 路由主文件
+├── stores/                # 状态管理
+│   └── meeting.js         # 会议状态
+├── utils/                 # 工具函数
+│   ├── axios.js           # axios封装
+│   ├── cache.js           # 缓存封装
+│   ├── fetch.js           # fetch封装
+│   └── utils.js           # 通用工具
+├── views/                 # 页面视图
+│   ├── Home/              # 首页
+│   │   ├── index.vue
+│   │   ├── index.less
+│   │   ├── home.config.js
+│   │   └── components/    # 页面私有组件
+│   ├── Login/             # 登录页
+│   │   ├── index.vue
+│   │   └── index.less
+│   └── ...                # 其他页面
+├── App.vue                # 根组件
+└── main.js                # 入口文件
+```
+
+### 文件组织原则
+1. **按功能模块划分**：相关文件放在同一目录下
+2. **组件复用**：公共组件放在`components/`目录
+3. **页面私有组件**：放在对应页面的`components/`子目录
+4. **样式分离**：样式文件与组件同名，便于维护
+5. **配置集中**：配置文件统一放在`config/`目录
+
+## 注释规范
+
+### JSDoc注释
+用于函数、类、方法的详细说明：
+```javascript
+/**
+ * 获取会议列表
+ * @param {Object} params - 请求参数
+ * @param {string} params.qid - 用户ID
+ * @returns {Promise<Object>} 返回会议列表数据
+ */
+const getMeetingList = async (params) => {
+    // ...
+}
+```
+
+### 单行注释
+用于简短说明：
+```javascript
+// 获取用户信息
+const getUserInfo = () => {
+    // ...
+}
+
+// TODO: 待实现功能
+// FIXME: 需要修复的问题
+```
+
+### 多行注释
+用于复杂逻辑说明：
+```javascript
+/*
+ * 快速会议创建流程
+ * 1. 验证用户权限
+ * 2. 创建会议
+ * 3. 跳转到会议页面
+ */
+const createQuickMeeting = () => {
+    // ...
+}
+```
+
+### 配置注释
+用于配置项说明：
+```javascript
+const ERROR_CONFIG = {
+    // 网络层错误
+    NETWORK_CODES: [401, 403, 404, 500],
+    // 业务层统一处理的错误
+    BUSINESS_CODES: [1001, 1002]
+}
+```
+
+## 提交信息规范
+
+- 提交信息控制在 10 字以内
+- 仅用抽象语义概括核心变更
+- 禁止包含技术细节
+
+## 工具和配置
+
+### ESLint配置
+项目使用ESLint进行代码检查，配置文件：`eslint.config.ts`
+
+### Prettier配置
+项目使用Prettier进行代码格式化，配置文件：`.prettierrc.json`
+```json
+{
+    "$schema": "https://json.schemastore.org/prettierrc",
+    "semi": false,
+    "singleQuote": true,
+    "printWidth": 100,
+    "tabWidth": 4
+}
+```
+
+### EditorConfig配置
+项目使用EditorConfig统一编辑器配置，配置文件：`.editorconfig`
+```ini
+[*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,vue,css,scss,sass,less,style}]
+charset = utf-8
+indent_size = 4
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+end_of_line = lf
+max_line_length = 100

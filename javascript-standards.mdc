@@ -1,0 +1,278 @@
+---
+description: JavaScript/TypeScript 编码规范和最佳实践
+globs: **/*.{js,ts,jsx,tsx}
+alwaysApply: false
+---
+
+# JavaScript/TypeScript 规范
+
+更新日期：2026-01-27
+
+## 变量声明
+
+- 优先使用 `const`，需要重新赋值时使用 `let`
+- 避免使用 `var`
+- 使用有意义的变量名
+
+### 变量命名
+- **变量**：camelCase（小驼峰）
+  - 示例：`userInfo`、`meetingList`、`quickMeetingShow`、`timer`
+- **常量**：UPPER_SNAKE_CASE（大写下划线）
+  - 示例：`ERROR_CONFIG`、`NETWORK_CODES`、`BUSINESS_CODES`
+
+```javascript
+// ✅ 正确
+const userInfo = ref({})
+const meetingList = ref([])
+const quickMeetingShow = ref(false)
+const timer = ref({ timeout: null, interval: null })
+
+const ERROR_CONFIG = {
+    NETWORK_CODES: [401, 403, 404, 500],
+    BUSINESS_CODES: [1001, 1002]
+}
+
+// ❌ 错误
+var userName = 'John'
+const user_name = 'John'
+```
+
+## 函数定义
+
+- 优先使用箭头函数
+- 异步函数使用 `async/await`，避免回调地狱
+- 函数参数使用解构赋值
+
+### 函数命名
+- **基本规则**：动词开头，camelCase（小驼峰）
+- **命名原则**：清晰表达功能
+
+```javascript
+// ✅ 正确
+const getUserInfo = () => { }
+const getMeetingList = async () => { }
+const createQuickMeeting = () => { }
+const gotoSetting = () => { }
+
+// ❌ 错误
+const userInfo = () => { }
+const meetingList = () => { }
+```
+
+### 事件处理函数
+- **命名风格**：动词 + Event 或动作描述
+- **示例**：
+  - `loginEvent`
+  - `menuAction`
+  - `pageBack`
+  - `closeQuickMask`
+
+```javascript
+const loginEvent = () => { }
+const menuAction = (code) => { }
+const pageBack = () => { }
+const closeQuickMask = () => { }
+```
+
+### API函数
+- **命名风格**：动词 + 名词
+- **示例**：
+  - `getMeetingList`
+  - `createMeeting`
+  - `updateMeeting`
+  - `deleteMeeting`
+
+```javascript
+const getMeetingList = async () => { }
+const createMeeting = async (data) => { }
+const updateMeeting = async (data) => { }
+const deleteMeeting = async (data) => { }
+```
+
+## 错误处理
+
+- 使用 `try-catch` 处理异步错误
+- 错误信息要清晰明确
+- 不要忽略错误，至少记录日志
+
+### API调用错误处理
+```javascript
+// ✅ 正确
+const getMeetingList = async () => {
+    try {
+        const response = await meetingAPI.getMeetingList({
+            qid: userInfo.value.qid
+        })
+        if (response && response.code === 0) {
+            meetingList.value = response.data.list
+        } else {
+            ElMessage.error(response.message || '获取失败')
+        }
+    } catch (error) {
+        ElMessage.error('网络错误')
+    }
+}
+
+// ❌ 错误
+const getMeetingList = async () => {
+    const response = await meetingAPI.getMeetingList({
+        qid: userInfo.value.qid
+    })
+    meetingList.value = response.data.list // 没有错误处理
+}
+```
+
+## 文件结构
+
+### API文件结构
+```javascript
+// 1. 导入依赖
+import { get, post, put, del } from '@/utils/axios'
+
+// 2. API配置数组
+const apiConfigs = [
+    {
+        name: 'getMeetingList',
+        url: '/Meeting/GetScheduleList',
+        method: 'post'
+    },
+    // ...
+]
+
+// 3. 生成API方法
+const api = {}
+apiConfigs.forEach((config) => {
+    const { name, url, method } = config
+    api[name] = (data, options = {}) => {
+        switch (method) {
+            case 'get':
+                return get(url, data, options)
+            case 'delete':
+                return del(url, { ...options, params: data })
+            case 'post':
+            case 'put':
+                return method === 'post' ? post(url, data, options) : put(url, data, options)
+            default:
+                throw new Error(`Unsupported method: ${method}`)
+        }
+    }
+})
+
+// 4. 导出
+export default api
+```
+
+### 工具函数文件结构
+```javascript
+// 1. 导入依赖
+import { storage, session } from './cache.js'
+import dayjs from 'dayjs'
+
+// 2. 工具函数定义
+const formatTime = (time, format = 'YYYY-MM-DD HH:mm:ss') => {
+    return dayjs(time).format(format)
+}
+
+const getImageUrl = (path) => {
+    // ...
+}
+
+// 3. 导出
+export {
+    storage,
+    session,
+    formatTime,
+    getImageUrl
+}
+```
+
+## 导入语句顺序
+
+```javascript
+// 1. Vue核心库
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+// 2. 第三方库
+import { ElMessage } from 'element-plus'
+import dayjs from 'dayjs'
+
+// 3. 本地组件
+import MeetingCard from '@/components/MeetingCard.vue'
+import BackHeader from '@/components/BackHeader.vue'
+
+// 4. API模块
+import meetingAPI from '@/api/meeting.js'
+import userAPI from '@/api/user.js'
+
+// 5. 工具函数
+import { getImageUrl, formatTime, session } from '@/utils/utils.js'
+
+// 6. 配置文件
+import { HandlerList } from './home.config.js'
+```
+
+## 注释规范
+
+### JSDoc注释
+用于函数、类、方法的详细说明：
+```javascript
+/**
+ * 获取会议列表
+ * @param {Object} params - 请求参数
+ * @param {string} params.qid - 用户ID
+ * @returns {Promise<Object>} 返回会议列表数据
+ */
+const getMeetingList = async (params) => {
+    // ...
+}
+```
+
+### 单行注释
+用于简短说明：
+```javascript
+// 获取用户信息
+const getUserInfo = () => {
+    // ...
+}
+
+// TODO: 待实现功能
+// FIXME: 需要修复的问题
+```
+
+### 多行注释
+用于复杂逻辑说明：
+```javascript
+/*
+ * 快速会议创建流程
+ * 1. 验证用户权限
+ * 2. 创建会议
+ * 3. 跳转到会议页面
+ */
+const createQuickMeeting = () => {
+    // ...
+}
+```
+
+## 示例
+
+```javascript
+// ✅ GOOD
+const fetchData = async (url) => {
+    try {
+        const response = await fetch(url)
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        return await response.json()
+    } catch (error) {
+        console.error('Request failed:', error)
+        throw error
+    }
+}
+
+// ❌ BAD
+const fetchData = async (url) => {
+    const response = await fetch(url)
+    return response.json() // 没有错误处理
+}

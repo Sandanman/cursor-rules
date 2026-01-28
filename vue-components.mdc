@@ -1,0 +1,407 @@
+---
+description: Vue 3 组件开发规范和最佳实践
+globs: **/*.vue
+alwaysApply: false
+---
+
+# Vue 组件规范
+
+更新日期：2026-01-27
+
+## 组件结构
+
+### 标准结构
+组件应按以下顺序组织：
+1. `<template>` - 模板部分
+2. `<script setup>` - 脚本部分
+3. `<style scoped lang="less">` - 样式部分
+
+```vue
+<template>
+    <!-- 模板内容 -->
+</template>
+
+<script setup>
+// 1. 导入语句
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+// 2. 组件导入
+import MeetingCard from '@/components/MeetingCard.vue'
+
+// 3. 工具函数导入
+import { getImageUrl, formatTime } from '@/utils/utils.js'
+
+// 4. Props定义
+const props = defineProps({
+    // ...
+})
+
+// 5. Emits定义
+const emit = defineEmits(['updateEvent'])
+
+// 6. 路由和状态
+const router = useRouter()
+
+// 7. 响应式数据
+const userInfo = ref({})
+const meetingList = ref([])
+
+// 8. 计算属性
+const filteredList = computed(() => {
+    // ...
+})
+
+// 9. 生命周期
+onMounted(() => {
+    // ...
+})
+
+// 10. 方法定义
+const getUserInfo = () => {
+    // ...
+}
+</script>
+
+<style scoped lang="less">
+// 样式内容
+</style>
+```
+
+### 导入语句顺序
+```javascript
+// 1. Vue核心库
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+
+// 2. 第三方库
+import { ElMessage } from 'element-plus'
+import dayjs from 'dayjs'
+
+// 3. 本地组件
+import MeetingCard from '@/components/MeetingCard.vue'
+import BackHeader from '@/components/BackHeader.vue'
+
+// 4. API模块
+import meetingAPI from '@/api/meeting.js'
+import userAPI from '@/api/user.js'
+
+// 5. 工具函数
+import { getImageUrl, formatTime, session } from '@/utils/utils.js'
+
+// 6. 配置文件
+import { HandlerList } from './home.config.js'
+```
+
+## Composition API
+
+- 优先使用 Composition API（`<script setup>`）
+- 使用 `ref` 和 `reactive` 管理响应式状态
+- 使用 `computed` 处理计算属性
+- 使用 `watch` 或 `watchEffect` 处理副作用
+
+### 响应式数据
+```javascript
+// ✅ 正确
+const userInfo = ref({})
+const meetingList = ref([])
+const quickMeetingShow = ref(false)
+const timer = ref({ timeout: null, interval: null })
+
+// ❌ 错误
+const userInfo = {}
+const meetingList = []
+```
+
+### 计算属性
+```javascript
+const filteredList = computed(() => {
+    return meetingList.value.filter(item => item.status === 1)
+})
+```
+
+### 生命周期
+```javascript
+onBeforeMount(() => {
+    // 组件挂载前执行
+})
+
+onMounted(() => {
+    // 组件挂载后执行
+})
+
+onBeforeUnmount(() => {
+    // 组件卸载前执行
+    if (timer.value.timeout) {
+        clearTimeout(timer.value.timeout)
+    }
+    if (timer.value.interval) {
+        clearInterval(timer.value.interval)
+    }
+})
+```
+
+## 组件命名
+
+### 组件名
+- **命名风格**：PascalCase（大驼峰）
+- **示例**：
+  - `MeetingCard`
+  - `BackHeader`
+  - `Message`
+
+```vue
+<template>
+    <MeetingCard :meetingInfo="meeting" />
+    <BackHeader title="返回" />
+</template>
+
+<script setup>
+import MeetingCard from '@/components/MeetingCard.vue'
+import BackHeader from '@/components/BackHeader.vue'
+</script>
+```
+
+### 文件名
+- **命名风格**：PascalCase（大驼峰）
+- **示例**：
+  - `BackHeader.vue`
+  - `MeetingCard.vue`
+  - `Message.vue`
+
+## Props 和 Emits
+
+### Props定义
+- **命名风格**：camelCase（小驼峰）
+- **示例**：
+  - `meetingInfo`
+  - `title`
+  - `userInfo`
+
+```javascript
+const props = defineProps({
+    meetingInfo: {
+        type: Object,
+        default: () => ({})
+    },
+    title: {
+        type: String,
+        default: ''
+    }
+})
+```
+
+### Emits定义
+- **命名风格**：动词 + Event 或动作描述
+- **示例**：
+  - `updateEvent`
+  - `cancelEvent`
+  - `closeEvent`
+  - `submitEvent`
+
+```javascript
+const emit = defineEmits(['updateEvent', 'cancelEvent'])
+
+// 使用
+emit('updateEvent', meetingNumber)
+emit('cancelEvent', meetingNumber)
+```
+
+## Element Plus 使用
+
+- 统一使用 Element Plus 组件库
+- 遵循 Element Plus 的 API 规范
+- 使用 `el-` 前缀的组件
+
+### 常用组件
+```vue
+<template>
+    <el-dialog v-model="show" @close="handleClose">
+        <el-form :model="formData" :rules="rules">
+            <el-form-item prop="userName">
+                <el-input v-model="formData.userName" placeholder="用户名" />
+            </el-form-item>
+        </el-form>
+    </el-dialog>
+</template>
+
+<script setup>
+import { ref, reactive } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+
+const show = ref(false)
+const formData = reactive({
+    userName: ''
+})
+
+const handleClose = () => {
+    show.value = false
+}
+</script>
+```
+
+## 路由使用
+
+### 路由跳转
+```javascript
+// 使用name跳转
+router.push({ name: 'home' })
+
+// 带参数跳转
+router.push({
+    name: 'meeting',
+    params: { meetingNumber }
+})
+
+// 返回上一页
+router.go(-1)
+```
+
+## 状态管理
+
+### Pinia Store
+```javascript
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+
+export const useMeetingStore = defineStore('meeting', () => {
+    // 状态
+    const user = ref({})
+    const currentMeeting = ref({})
+
+    // 计算属性
+    const isInMeeting = computed(() => currentMeeting.value.isActive)
+
+    // 方法
+    const setUser = (userData) => {
+        user.value = { ...user.value, ...userData }
+    }
+
+    return {
+        user,
+        currentMeeting,
+        isInMeeting,
+        setUser
+    }
+})
+```
+
+## 样式规范
+
+### 样式作用域
+- 组件样式使用 `scoped` 属性
+- 全局样式放在 `src/assets/styles/` 目录
+
+```vue
+<style scoped lang="less">
+// 组件私有样式
+.home-page {
+    // ...
+}
+</style>
+
+<style lang="less">
+// 全局样式
+</style>
+```
+
+### Less嵌套
+```less
+.home-page {
+    .home-menu {
+        .home-menu-item {
+            .home-menu-item-icon {
+                width: 4rem;
+            }
+
+            .home-menu-item-name {
+                font-size: 1.4rem;
+            }
+        }
+
+        .home-menu-item-quick {}
+        .home-menu-item-book {}
+    }
+}
+```
+
+## 示例
+
+```vue
+<template>
+    <div class="meeting-card">
+        <div class="meeting-name">
+            <div class="meeting-name-content" @click="gotoMeetingDetail">
+                <img :src="getImageUrl('@/assets/images/meeting/common_meeting.svg')" class="meeting-icon">
+                <span class="meeting-name-text">{{ meetingInfo.meeting_name }}</span>
+            </div>
+        </div>
+        <div class="meeting-base">
+            <span class="meeting-time">{{ formatTime(meetingInfo.start_time, 'HH:mm') }}</span>
+            <div class="meeting-join">
+                <el-button type="primary" size="small" @click="gotoMeeting">入会</el-button>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script setup>
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+
+const router = useRouter()
+const emit = defineEmits(['updateEvent', 'cancelEvent'])
+
+const props = defineProps({
+    meetingInfo: {
+        type: Object,
+        default: () => ({})
+    }
+})
+
+const gotoMeetingDetail = () => {
+    router.push({ name: 'detail', params: { meetingNumber: props.meetingInfo.meeting_number } })
+}
+
+const gotoMeeting = () => {
+    router.push({ name: 'meeting', params: { meetingNumber: props.meetingInfo.meeting_number } })
+}
+</script>
+
+<style scoped lang="less">
+.meeting-card {
+    width: 100%;
+    padding: 0 1.6rem;
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    border-radius: .4rem;
+
+    .meeting-name {
+        padding: 1.6rem 0;
+        display: flex;
+        align-items: center;
+        border-bottom: 1px dashed #e1e7ed;
+
+        .meeting-name-content {
+            width: 100%;
+            display: flex;
+            align-items: center;
+
+            .meeting-icon {
+                width: 2.2rem;
+                height: 2.2rem;
+            }
+
+            .meeting-name-text {
+                flex: 1;
+                color: #1a1b1d;
+                font-size: 1.6rem;
+                font-weight: 500;
+                margin-left: .8rem;
+            }
+        }
+    }
+}
+</style>
